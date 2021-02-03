@@ -37,7 +37,9 @@ local function http_song_add(req)
     {song_id = body.key, name = body.value.name, 
     artist = body.value.artist, duration = body.value.duration})
     
-    return success_response(req, {info = "Song was added"}, 201, tonumber(body.key))
+    local song = crud.unflatten_rows(resp.rows, resp.metadata)
+    
+    return success_response(req, song, 201, tonumber(body.key))
 end
 
 local function http_song_get(req)   
@@ -62,7 +64,9 @@ local function http_song_delete(req)
     
     local resp, error = crud.delete('song', song_id)
     
-    return success_response(req, {info = "Song was deleted"}, 200, song_id)
+    local song = crud.unflatten_rows(resp.rows, resp.metadata)
+    
+    return success_response(req, song, 200, song_id)
 end
 
 local function http_song_update(req)
