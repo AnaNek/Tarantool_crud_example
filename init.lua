@@ -35,7 +35,8 @@ local ok, err = cartridge.cfg({
         'cartridge.roles.vshard-storage',
         'cartridge.roles.vshard-router',
         'cartridge.roles.metrics',
-        'app.roles.custom',
+        'app.roles.router',
+        'app.roles.storage',
     },
     cluster_cookie = 'app_crud-cluster-cookie',
 })
