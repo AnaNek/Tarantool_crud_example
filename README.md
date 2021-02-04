@@ -96,5 +96,181 @@ curl -X DELETE -v http://localhost:8081/kv/3
 * Connection #0 to host localhost left intact
 [{"song_id":3,"duration":187,"bucket_id":11804,"name":"In the End","artist":"Linkin Park"}]
 ```
+## Использование crud.select()
+
+Выборка всех записей спейса song.
+
+```lua
+app_crud.router> res = crud.select('song')
+---
+...
+
+app_crud.router> res
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [1, 12477, 'Whatever it takes', 'Imagine dragons', 13]
+  - [2, 21401, 'Warriors', 'Imagine dragons', 13]
+  - [3, 11804, 'In the End', 'Linkin Park', 187]
+  - [4, 28161, 'Radioactive', 'Imagine dragons', 123]
+  - [5, 1172, 'Glory', 'Hollywood undead', 123]
+  - [6, 13064, 'Sell your soul', 'Hollywood undead', 185]
+  - [7, 6693, 'Delish', 'Hollywood undead', 180]
+...
+
+```
+
+Использование параметра after. Получение объектов после определенного кортежа.
+
+```lua
+app_crud.router> crud.select('song', nil, { after = res.rows[3] })
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [4, 28161, 'Radioactive', 'Imagine dragons', 123]
+  - [5, 1172, 'Glory', 'Hollywood undead', 123]
+  - [6, 13064, 'Sell your soul', 'Hollywood undead', 185]
+  - [7, 6693, 'Delish', 'Hollywood undead', 180]
+...
+
+```
+
+Использование параметра first. Получение первых N строк запроса.
+
+```lua
+app_crud.router> crud.select('song', nil, { first = 4 })
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [1, 12477, 'Whatever it takes', 'Imagine dragons', 13]
+  - [2, 21401, 'Warriors', 'Imagine dragons', 13]
+  - [3, 11804, 'In the End', 'Linkin Park', 187]
+  - [4, 28161, 'Radioactive', 'Imagine dragons', 123]
+...
+
+```
+
+### Пагинация 
+
+```lua
+app_crud.router> crud.select('song', nil, { after = res.rows[0], first = 2 })
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [1, 12477, 'Whatever it takes', 'Imagine dragons', 13]
+  - [2, 21401, 'Warriors', 'Imagine dragons', 13]
+...
+
+app_crud.router> crud.select('song', nil, { after = res.rows[2], first = 2 })
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [3, 11804, 'In the End', 'Linkin Park', 187]
+  - [4, 28161, 'Radioactive', 'Imagine dragons', 123]
+...
+
+```
+
+### Обратная пагинация
+
+```lua
+app_crud.router> crud.select('song', nil, { after = res.rows[6], first = -2 })
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [4, 28161, 'Radioactive', 'Imagine dragons', 123]
+  - [5, 1172, 'Glory', 'Hollywood undead', 123]
+...
+
+app_crud.router> crud.select('song', nil, { after = res.rows[4], first = -2 })
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [2, 21401, 'Warriors', 'Imagine dragons', 13]
+  - [3, 11804, 'In the End', 'Linkin Park', 187]
+...
+```
+### Использование фильтров
+
+Выборка записей из спейса song с длительностью композиции >= 100.
+
+```lua
+app_crud.router> crud.select('song', {{'>=', 'duration', 100}})
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [3, 11804, 'In the End', 'Linkin Park', 187]
+  - [4, 28161, 'Radioactive', 'Imagine dragons', 123]
+  - [5, 1172, 'Glory', 'Hollywood undead', 123]
+  - [6, 13064, 'Sell your soul', 'Hollywood undead', 185]
+  - [7, 6693, 'Delish', 'Hollywood undead', 180]
+...
+```
+
+Выборка записей из спейса song с длительностью композиции >= 100 и исполнителем Hollywood undead.
+
+```lua
+app_crud.router> crud.select('song', {{'>=', 'duration', 100}, {'==', 'artist', 'Hollywood undead'}})
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [5, 1172, 'Glory', 'Hollywood undead', 123]
+  - [6, 13064, 'Sell your soul', 'Hollywood undead', 185]
+  - [7, 6693, 'Delish', 'Hollywood undead', 180]
+...
+```
+
+## Использование crud.replace()
+
+```lua
+app_crud.router> crud.replace_object('song', {song_id = 7, name = 'Medicine',artist = 'Hollywood undead', duration = 180})
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [7, 6693, 'Medicine', 'Hollywood undead', 180]
+...
+
+app_crud.router> crud.replace_object('song', {song_id = 8, name = 'Undead',artist = 'Hollywood undead', duration = 180})
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows:
+  - [8, 3185, 'Undead', 'Hollywood undead', 180]
+...
+
+```
+
+## Использование crud.upsert()
+
+```lua
+app_crud.router> crud.upsert_object('song', {song_id = 9, name = 'Mine',artist = 'Arctic Monkey', duration = 180}, {{'+', 'duration', 2}})
+---
+- metadata: [{'name': 'song_id', 'type': 'unsigned'}, {'name': 'bucket_id', 'type': 'unsigned'},
+    {'name': 'name', 'type': 'string'}, {'name': 'artist', 'type': 'string'}, {'name': 'duration',
+      'type': 'unsigned'}]
+  rows: []
+...
+```
 
 
