@@ -2,25 +2,17 @@ router:
   instances:
   - router
   roles:
-  - failover-coordinator
+  - crud-router
   - vshard-router
-  - app.roles.custom
+  - router
   all_rw: false
-s-1:
+storage:
   instances:
   - s1-master
-  - s1-replica
   roles:
+  - crud-storage
   - vshard-storage
-  weight: 1
-  all_rw: false
-  vshard_group: default
-s-2:
-  instances:
-  - s2-master
-  - s2-replica
-  roles:
-  - vshard-storage
+  - storage
   weight: 1
   all_rw: false
   vshard_group: default
